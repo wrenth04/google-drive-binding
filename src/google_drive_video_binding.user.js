@@ -52,18 +52,17 @@ function yahoo() {
 }
 
 function atmovies() {
-  var title = document.getElementsByClassName('at12b_gray')[0].innerHTML;
-  var title2 = document.getElementsByClassName('at21b')[0].innerHTML.replace(/<[^>]*>/g, '').replace(/[\t\r\n ]/g, '');
-  unsafeWindow.loginCallback = googleLoginCallback([title, title2], document.getElementById('movie_info01'));
-  googleLogin(document.getElementById('logo'));
+  var title = document.querySelector('.at12b_gray').innerHTML;
+  var title2 = document.querySelector('.at21b').innerHTML.replace(/<[^>]*>/g, '').replace(/[\t\r\n ]/g, '');
+  unsafeWindow.loginCallback = googleLoginCallback([title, title2], document.querySelector('#movie_info01'));
+  googleLogin(document.querySelector('#logo'));
 }
 
 function imdb() {
-  var title = document.getElementById('overview-top')
-    .getElementsByClassName('itemprop')[0].innerHTML;
-  unsafeWindow.loginCallback = googleLoginCallback(title, document.getElementById('title-overview-widget'));
+  var title = document.querySelector('#overview-top .itemprop').innerHTML;
+  unsafeWindow.loginCallback = googleLoginCallback(title, document.querySelector('#title-overview-widget'));
   var _login = document.createElement('li');
-  document.getElementById('consumer_main_nav').appendChild(_login);
+  document.querySelector('#consumer_main_nav').appendChild(_login);
   googleLogin(_login);
 }
 
