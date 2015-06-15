@@ -36,7 +36,10 @@ function googleLoginCallback(titles, _parent) {
     return function(res) {
       var height = _parent.offsetWidth * 9 / 16;
       _parent.innerHTML += res.items.map(function(video) {
-        return video.title+'<br>'+'<iframe src="https://docs.google.com/file/d/'+video.id+'/preview" style="width: 100%; height: '+height+'px"></iframe>';
+        return [
+          video.title,
+          '<iframe src="https://docs.google.com/file/d/'+video.id+'/preview" style="width: 100%; height: '+height+'px"></iframe>'
+        ].join('<br>');
       }).join('');
     }
   }
