@@ -2,57 +2,69 @@
 // @name        google drive video binding
 // @namespace   wei
 // @include     https://tw.movies.yahoo.com/movieinfo_dvd.html/id=*
-// @include     http://app.atmovies.com.tw/movie/movie.cfm?*
+// @include     http://*.atmovies.com.tw/movie/*
+// @include     http://www.imdb.com/title/*
 // @version     1
 // @grant       none
 // ==/UserScript==
 
 var scripts = {
   'tw.movies.yahoo.com': yahoo,
-  'app.atmovies.com.tw': atmovies
+  'www.atmovies.com.tw': atmovies,
+  'app.atmovies.com.tw': atmovies,
+  'www.imdb.com': imdb
 };
 
 var host = document.location.host;
 
 (scripts[host] || noop)();
 
-function googleLoginCallback(title, _parent) {
+function googleLoginCallback(titles, _parent) {
+  if(typeof titles === 'string') titles = [titles];
   return function(auth) {if(auth['access_token']) {
+    var query = titles.map(function(title) {
+      return 'title contains "'+title+'"';
+    }).join(' or ');
     document.getElementById('signinButton').style.display = 'none';
-    gapi.client.load('drive', 'v2', function(){
-      gapi.client.drive.files.list({q: 'title contains "'+title+'" and mimeType contains "video/"'})
+    gapi.client.load('drive', 'v2', function() {
+      gapi.client.drive.files.list({q: '('+query+') and mimeType contains "video/"'})
       .execute(addVideos(_parent));
     });
   }}
   
-  function addVideos(_parent){
-    return function(res){
-      var html = '';
+  function addVideos(_parent) {
+    return function(res) {
       var height = _parent.offsetWidth * 9 / 16;
-      res.items.forEach(function(file){
-        //var ratio = _parent.offsetWidth / file.videoMediaMetadata.width;
-        //var height = file.videoMediaMetadata.height * ratio;
-        html += file.title + '<br>'
-          + '<iframe src="https://docs.google.com/file/d/'+file.id+'/preview" style="width: 100%; height: '+height+'px"></iframe>';
-      });
-      _parent.innerHTML += html;
+      _parent.innerHTML += res.items.map(function(video) {
+        return video.title+'<br>'+'<iframe src="https://docs.google.com/file/d/'+video.id+'/preview" style="width: 100%; height: '+height+'px"></iframe>';
+      }).join('');
     }
   }
 }
 
-function noop(){}
+function noop() {}
 
-function yahoo(){
+function yahoo() {
   var title = document
     .getElementsByClassName('bulletin')[0]
     .getElementsByTagName('h5')[0]
     .innerHTML;
 }
 
-function atmovies(){
+function atmovies() {
   var title = document.getElementsByClassName('at12b_gray')[0].innerHTML;
-  unsafeWindow.loginCallback = googleLoginCallback(title, document.getElementById('movie_info01'));
+  var title2 = document.getElementsByClassName('at21b')[0].innerHTML.replace(/<[^>]*>/g, '').replace(/[\t\r\n ]/g, '');
+  unsafeWindow.loginCallback = googleLoginCallback([title, title2], document.getElementById('movie_info01'));
   googleLogin(document.getElementById('logo'));
+}
+
+function imdb() {
+  var title = document.getElementById('overview-top')
+    .getElementsByClassName('itemprop')[0].innerHTML;
+  unsafeWindow.loginCallback = googleLoginCallback(title, document.getElementById('title-overview-widget'));
+  var _login = document.createElement('li');
+  document.getElementById('consumer_main_nav').appendChild(_login);
+  googleLogin(_login);
 }
 
 function googleLogin(_parent) {
@@ -70,3 +82,4 @@ function googleLogin(_parent) {
   po.src = 'https://apis.google.com/js/client:plusone.js';
   var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
 }
+
